@@ -17,7 +17,7 @@
 ### 参数介绍以及调整
 - `imgUrls`：一个包含要在球体上显示的图像 URL 的数组。可以在此处添加您的图像 URL。
 
-```javascript
+    ```javascript
     const imgUrls = [
         "https://via.placeholder.com/80x80",
         // 根据需要添加更多图像 URL
