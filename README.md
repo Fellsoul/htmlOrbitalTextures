@@ -2,7 +2,7 @@
 - [中文](README.zh.md)
 - [English](README.md)
 
-# Spherical Image Arrangement
+# Html Orbital Textures
 
 This project creates a dynamic spherical arrangement of images, allowing for customizable parameters to adjust the visual layout. The images are displayed on a 3D sphere, giving a unique presentation style for showcasing visuals.
 
