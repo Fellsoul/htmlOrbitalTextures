@@ -2,7 +2,7 @@
 - [中文](README.zh.md)
 - [English](README.md)
 
-# Spherical Image Arrangement
+# Html Orbital Textures
 该项目创建了一个动态的图像球形排列，允许自定义参数以调整视觉布局。图像显示在一个 3D 球体上，为展示视觉效果提供了独特的展示风格。
 
 ## 样式
