@@ -18,26 +18,25 @@
 - `imgUrls`：一个包含要在球体上显示的图像 URL 的数组。可以在此处添加您的图像 URL。
 
 ```javascript
-const imgUrls = [
-    "https://via.placeholder.com/80x80",
-    // 根据需要添加更多图像 URL
-];
+    const imgUrls = [
+        "https://via.placeholder.com/80x80",
+        // 根据需要添加更多图像 URL
+    ];
+    
+    const topImgUrl = "https://via.placeholder.com/80x80"; // 球体北极的图像, 默认X轴旋转90°形成平铺
+    const lowImgUrl = "https://via.placeholder.com/80x80"; // 球体南极的图像, 默认X轴旋转90°形成平铺
 
-const topImgUrl = "https://via.placeholder.com/80x80"; // 球体北极的图像, 默认X轴旋转90°形成平铺
-const lowImgUrl = "https://via.placeholder.com/80x80"; // 球体南极的图像, 默认X轴旋转90°形成平铺
-  
 - `manipulation`: 可以更改的其他参数.
-
     ```javascript
-  let layerAmount = 7; // 纬度层（仅允许为奇数）
-  let sphereRadius = 300; // 球半径
-  let gapDistance = 20; // 间隔距离，但每层会乘以 0.5 以创建角度效果
-  let gapProportion = 0.5; // 纬度层之间的间隔变化率
-  let imgSideDecrease = 6; // px，每层图像大小的减少
-  let imageSide = 80; // 赤道上的图像大小，px
-  let animationTimeStart = 30; // s
-  let timeProportion = 1.2; // 从赤道到两极的动画时间乘数
-  let startDegreeCD = 10; // 动画开始时每层的 rotateY 公差，deg
+      let layerAmount = 7; // 纬度层（仅允许为奇数）
+      let sphereRadius = 300; // 球半径
+      let gapDistance = 20; // 间隔距离，但每层会乘以 0.5 以创建角度效果
+      let gapProportion = 0.5; // 纬度层之间的间隔变化率
+      let imgSideDecrease = 6; // px，每层图像大小的减少
+      let imageSide = 80; // 赤道上的图像大小，px
+      let animationTimeStart = 30; // s
+      let timeProportion = 1.2; // 从赤道到两极的动画时间乘数
+      let startDegreeCD = 10; // 动画开始时每层的 rotateY 公差，deg
     // the above part is where you can change as a property of the sphere.
 
 ## 警告:
