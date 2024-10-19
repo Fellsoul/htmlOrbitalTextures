@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Globe Images</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background: #333;
+            overflow: hidden;
+        }
+
+        /* sphere - main class */
+        .sphere {
+            
+            position: relative;
+            width: 400px;
+            height: 400px;
+            transform-style: preserve-3d;
+            transform-origin: 100px 100px;
+            transition: transform 0.5s ease;
+        }
+
+        .no-select {
+            user-select: none; /* Chrome, Opera, Safari */
+            -moz-user-select: none; /* Firefox */
+            -ms-user-select: none; /* Internet Explorer and Edge */
+            cursor: default; /* forbid to show handle cursor */
+        }
+        
+
+        .blur-circle {
+            position: absolute;
+            width: 300px;  /* blur circle size */
+            height: 300px;
+
+            margin-top: -105px;
+            margin-left: -105px;
+            background: rgba(255, 255, 255, 0.99);  /* blur circle color */
+            border-radius: 50%;  /* circle-set */
+            filter: blur(30px);  /* set its blur */
+            transform: translateZ(0px) ;  /* to put this into center */
+            opacity: 1;  
+        }
+    </style>
+</head>
+<body>
+    <div class="sphere" id="animateSphere">  
+        <div class="blur-circle" id="blurCircle"></div>
+    </div>
+    <script>
+        const blurCircle = document.getElementById('blurCircle');
+        const imgUrls = [
+            "https://via.placeholder.com/80x80"
+        ]
+
+        const topImgUrl = "https://via.placeholder.com/80x80";
+        const lowImgUrl = "https://via.placeholder.com/80x80";
+        // adjust the variables here
+        let layerAmount = 7; // Latitude layers (only allows odd numbers)    
+        let sphereRadius = 300; // Sphere radius
+        let gapDistance = 20; // Gap distance, but each layer is multiplied by 0.5 to create an angular effect
+        let gapProportion = 0.5; // Gap change rate between latitude layers
+        let imgSideDecrease = 6; // px, Decrease in image size for each layer
+        let imageSide = 80; // Image size on the equator, px
+        let animationTimeStart = 30; // s
+        let timeProportion = 1.2; // The multiplier rate of animation time from the equator to the poles
+        let startDegreeCD = 10; // Difference in rotateY degrees at the start of the animation per layer, deg
+
+
+        // Calculate constants related to the sphere
+        let sphereEle = document.getElementById('animateSphere');
+        let sphere = document.querySelector('.sphere')
+        let urlIndex = 0;
+        let isMouseDown = false;
+        let startX, startY;
+        let rotationX = 0, rotationY = 0;
+
+        let latitudeDegConst = 90 / ((layerAmount - 1) / 2 + 1); // Latitude interval angle
+        let absoluteLayerY = 0, absoluteLayerZ = 0;
+        let midLayer = (layerAmount - 1)
+        let childIndex = 1;
+
+        const style = document.createElement('style');
+        document.head.appendChild(style);
+
+        function createLayerCSS(layer, animationTimeLayer, startYDeg, rotateX, translateY, translateZ, currentLayerImgSide) {
+            // Dynamically create @keyframes animation and corresponding layer styles
+            let layerN = `
+                .sphere .layer${layer} {
+                    position: absolute;
+                    width: ${currentLayerImgSide}px;
+                    height: ${currentLayerImgSide}px;
+                    object-fit: cover;
+                }
+            `;
+            style.sheet.insertRule(layerN, style.sheet.cssRules.length);
+        }
+                
+        function setFragment(layerId, url, imgIdxInLayer, rotateX, imgAmount, startYDeg, animationTime, translateY, translateZ){
+            let newImg = document.createElement('img');
+            let rotateYDeg = 360 / imgAmount * imgIdxInLayer + startYDeg;
+            let animationDelay = -(animationTime / imgAmount * imgIdxInLayer);
+            sphereEle.appendChild(newImg);
+            newImg.classList.add(`layer${layerId}`);
+            newImg.src = url;
+            childIndex += 1;
+            const keyframesName = `rotateYChange-${layerId}-${imgIdxInLayer}`;
+            let keyframes1 = `
+                @keyframes ${keyframesName} {
+                    0% { transform: translateY(${translateY}px) rotateY(0deg) translateZ(${translateZ}px) rotateX(${rotateX}deg) ; }
+                    100% { transform: translateY(${translateY}px) rotateY(360deg) translateZ(${translateZ}px) rotateX(${rotateX}deg) ; }
+                }
+            `;
+            style.sheet.insertRule(keyframes1, style.sheet.cssRules.length);
+            let pushStyle = `.sphere .layer${layerId}:nth-child(${childIndex}) {
+                transform:  rotateY(${rotateYDeg}deg) translateY(${translateY}px) translateZ(${translateZ}px) rotateX(${rotateX}deg);
+                animation-delay: ${animationDelay}s;
+            }`;
+            style.sheet.insertRule(pushStyle, style.sheet.cssRules.length);
+
+
+            newImg.style.animation = `${keyframesName} ${animationTime}s infinite linear`;
+            newImg.style.animationDelay = `${animationDelay}s`;
+        }
+
+        function setTopAndBottom(urlT, urlB, translateY, imgSize){
+            let topImg = document.createElement('img');
+            let lowImg = document.createElement('img');
+            sphereEle.appendChild(topImg);
+            sphereEle.appendChild(lowImg);
+            let layerTopCSS = `.sphere .layerTop {transform-origin:center center; transform: translateY(-${translateY}px) rotateX(90deg); position: absolute; width: ${imgSize}px; height: ${imgSize}px;}`;
+            let layerBottomCSS = `.sphere .layerBottom {transform-origin:center center; transform: translateY(${translateY}px) rotateX(90deg); position: absolute; width: ${imgSize}px; height: ${imgSize}px;}`;
+            style.sheet.insertRule(layerTopCSS, style.sheet.cssRules.length);
+            style.sheet.insertRule(layerBottomCSS, style.sheet.cssRules.length);
+            topImg.src = urlT;
+            lowImg.src = urlB;
+            topImg.style = layerTopCSS;
+            
+            topImg.classList.add(`layerTop`);
+            lowImg.classList.add(`layerBottom`);
+
+        }
+
+        setTopAndBottom(topImgUrl, lowImgUrl, sphereRadius, 80);
+
+        for (let i = 0; i < layerAmount; i += 1) {  // Iterate through each layer
+            console.log(`Layer ${i}:`);
+
+            //[0~(n-1)/2) layers: iterate from back to front
+            if (i < midLayer) {
+                let gapCurrentLayer = gapDistance * Math.pow(gapProportion, (i + 1));
+                let convertLayer = (layerAmount - 1) / 2 - i - 1; // To iterate from back to front
+                let currentLatitudeDeg = (i + 1) * latitudeDegConst; // Latitude angle
+                let currentLatitudeRad = currentLatitudeDeg * Math.PI / 180; // Convert to radians
+                let nextLatitudeDeg =  (i + 2) * latitudeDegConst;
+                let nextLatitudeRad = nextLatitudeDeg * Math.PI / 180;
+                let currentLayerImgSide = imageSide - (i + 1) * imgSideDecrease;
+
+                // Calculate spherical coordinates
+                let translateYLayer = sphereRadius * Math.sin(currentLatitudeRad);  // Y coordinate determined by latitude
+                let translateZLayer = sphereRadius * Math.cos(currentLatitudeRad);  // Z coordinate determined by latitude
+                let rotateX = currentLatitudeDeg;  // Latitude angle
+
+                let animationTimeCurrent = animationTimeStart * Math.pow(timeProportion, (i + 1));
+                let startYDeg = i * startDegreeCD;
+
+                // Create CSS for the current layer
+                createLayerCSS(i, animationTimeCurrent, startYDeg, rotateX, translateYLayer, translateZLayer, currentLayerImgSide);
+                createLayerCSS(midLayer + i + 1, animationTimeCurrent, startYDeg, rotateX, translateYLayer, translateZLayer, currentLayerImgSide);
+                let currentDiameter = 2 * Math.PI * sphereRadius * Math.cos(currentLatitudeRad); // Current latitude circle circumference
+                let IACurrentLayer = Math.floor(currentDiameter / (gapDistance + imageSide)); // Number of images that can fit on the current layer
+
+                for (let j = 0; j < IACurrentLayer; j += 1) {
+                    setFragment(i, imgUrls[urlIndex], j, rotateX, IACurrentLayer, startYDeg, animationTimeCurrent, -translateYLayer, translateZLayer);
+                    urlIndex += 1;
+                    urlIndex = urlIndex % imgUrls.length;
+                    setFragment(midLayer + i + 1, imgUrls[urlIndex], j, -rotateX, IACurrentLayer, startYDeg, animationTimeCurrent, translateYLayer, translateZLayer);
+                    urlIndex += 1;
+                    urlIndex = urlIndex % imgUrls.length;
+                }
+            }
+
+            // midLayer handling
+            else if (i === midLayer) {
+                let gapCurrentLayer = gapDistance;
+                let translateYLayer = 0;  // midLayer is located at the equator, so Y is 0
+                let translateZLayer = sphereRadius;  // midLayer's Z is the radius of the sphere
+                let rotateX = 0;  // The equator layer has no rotation angle
+                let animationTimeCurrent = animationTimeStart;
+                let startYDeg = 0;
+
+                createLayerCSS(midLayer, animationTimeCurrent, startYDeg, rotateX, translateYLayer, translateZLayer, imageSide);
+
+                let currentDiameter = 2 * Math.PI * sphereRadius;
+                let IACurrentLayer = Math.floor(currentDiameter / (gapCurrentLayer + imageSide));
+
+                for (let j = 0; j < IACurrentLayer; j += 1) {
+                    setFragment(midLayer, imgUrls[urlIndex], j, rotateX, IACurrentLayer, startYDeg, animationTimeCurrent, translateYLayer, translateZLayer);
+                    urlIndex += 1;
+
+                    urlIndex = urlIndex % imgUrls.length;
+                }
+            }
+        }
+
+        function getScale(element) {
+            const transform = getComputedStyle(element).transform;
+            if (transform === 'none') {
+                return 1; // Default scale value
+            }
+
+            const matrixValues = transform.match(/matrix\(([^)]+)\)/);
+            if (matrixValues) {
+                const values = matrixValues[1].split(',');
+                return parseFloat(values[0]); // Return scaleX value
+            }
+            return 1; // If unable to retrieve, return default scale value
+        }
+
+        const handleStart = (e) => {
+            isMouseDown = true;
+            startX = e.clientX || e.touches[0].clientX;
+            startY = e.clientY || e.touches[0].clientY;
+        };
+
+        const handleEnd = () => {
+            isMouseDown = false;
+        };
+
+        const handleMove = (e) => {
+            if (!isMouseDown) return;
+
+            const deltaX = (e.clientX || e.touches[0].clientX) - startX;
+            const deltaY = (e.clientY || e.touches[0].clientY) - startY;
+
+            const sphereScale = getScale(sphere);
+
+            rotationY += deltaX * 0.5; // X-axis rotation
+            rotationX -= deltaY * 0.5; // Y-axis rotation
+
+            sphere.style.transform = `scale(${sphereScale}) rotateX(${rotationX}deg) rotateY(${rotationY}deg)`;
+            startX = e.clientX || e.touches[0].clientX;
+            startY = e.clientY || e.touches[0].clientY;
+
+            blurCircle.style.transform = `rotateX(${-rotationX}deg) rotateY(${-rotationY}deg)`;
+        };
+
+        let currentScale = 1;  // Initialize scale
+
+        const handleWheel = (e) => {
+            e.preventDefault();
+            currentScale += e.deltaY * -0.001;
+
+            currentScale = Math.max(0.1, currentScale);
+            
+            sphere.style.transform = `scale(${currentScale}) translateX(${currentScale * 80}px) translateY(${currentScale * 80}px)`;
+        };
+
+        // Add event listeners
+        document.addEventListener('mousedown', handleStart);
+        document.addEventListener('mouseup', handleEnd);
+        document.addEventListener('mousemove', handleMove);
+        document.addEventListener('wheel', handleWheel);
+
+        // Touch event support
+        document.addEventListener('touchstart', handleStart);
+        document.addEventListener('touchend', handleEnd);
+        document.addEventListener('touchmove', handleMove);
+    </script>
+</body>
+</html>
