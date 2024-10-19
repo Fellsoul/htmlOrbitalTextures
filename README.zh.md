@@ -26,7 +26,7 @@ const imgUrls = [
 const topImgUrl = "https://via.placeholder.com/80x80"; // 球体北极的图像, 默认X轴旋转90°形成平铺
 const lowImgUrl = "https://via.placeholder.com/80x80"; // 球体南极的图像, 默认X轴旋转90°形成平铺
   
-- **manipulation**: 可以更改的其他参数.
+- `manipulation`: 可以更改的其他参数.
 
     ```javascript
   let layerAmount = 7; // 纬度层（仅允许为奇数）
